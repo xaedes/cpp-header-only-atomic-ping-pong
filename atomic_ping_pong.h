@@ -8,7 +8,8 @@ class AtomicPingPong
 public:
     T items[2];
     std::atomic<int> current = 0; // only least significant bit is used
-    AtomicPingPong<T>& swap();
+    T& swap();
+    const T& swap();
 
     T& operator()();
     const T& operator()() const;
@@ -22,11 +23,17 @@ public:
 
 // implementation:
 template <typename T>
-AtomicPingPong<T>& AtomicPingPong<T>::swap()
+T& AtomicPingPong<T>::swap()
 {
     // xor with 1 will toggle between 0 and 1
-    current ^= 1;
-    return *this;
+    return items[current.fetch_xor(1)];
+}
+
+template <typename T>
+const T& AtomicPingPong<T>::swap()
+{
+    // xor with 1 will toggle between 0 and 1
+    return items[current.fetch_xor(1)];
 }
 
 template <typename T>
